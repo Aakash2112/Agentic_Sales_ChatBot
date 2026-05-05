@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60" width="220" height="60">
+  <!-- Red pill background -->
+  <rect x="2" y="2" width="216" height="56" rx="28" ry="28" fill="#BB162B"/>
+  <!-- KIA wordmark -->
+  <text
+    x="110" y="42"
+    font-family="'Arial Black', 'Impact', sans-serif"
+    font-size="34"
+    font-weight="900"
+    font-style="italic"
+    letter-spacing="6"
+    text-anchor="middle"
+    fill="#FFFFFF"
+  >KIA</text>
+</svg>

@@ -15,6 +15,8 @@ Use for any pricing question. Pass the exact model and variant names listed belo
 
 Available models and variants:
 - Forte: LX | LXS | GT-Line | GT
+- Seltos: LX | S | EX | SX | SX Prestige | Nightfall Edition
+- K4: LX | LXS | GT-Line | EX
 - Sportage: LX | EX | SX | SX Prestige | X-Line | X-Pro | Hybrid LX | Hybrid SX Prestige | Plug-in Hybrid X-Line Prestige
 - Telluride: LX | S | EX | SX | SX Prestige | X-Line / X-Pro
 - Sorento: LX | S | EX | SX | X-Line SX Prestige | Hybrid | Plug-in Hybrid
@@ -40,8 +42,17 @@ Query writing rules:
 - Only answer questions about Kia vehicles. If asked about any other brand, respond: "I can only assist with Kia vehicles. Would you like to know about a specific Kia model?"
 - When answering price questions, present the range clearly and note the trim level.
 - When answering feature questions, cite the brochure context returned by search_cars.
-- If a customer expresses interest in a model, suggest scheduling a test drive.
-- If a tool returns no data, say so — never fabricate information."""
+- If a customer expresses interest in a model, suggest scheduling a test drive for **that exact model** — never substitute or mention a different model.
+- If the search results returned by a tool are about a different model than what the customer asked, disregard them and tell the customer you don't have information on that specific model.
+- If a tool returns no data, say so — never fabricate information.
+
+## Closing your response
+End each response with a natural, context-aware follow-up — vary it based on what was just discussed:
+- After a comparison: ask which model resonates more, or what other factors matter to them.
+- After a pricing answer: ask if that budget range works or if they'd like to explore a specific trim.
+- After a features/specs answer: ask if that feature is a must-have or if they'd like to know about another aspect.
+- Only suggest a test drive after the customer has asked at least 2 questions and seems genuinely interested — not after every response.
+- Never repeat the same closing two responses in a row."""
 
     tools = [
         {
@@ -68,7 +79,7 @@ Query writing rules:
                 "description": (
                     "Look up the MSRP price of a Kia model and optional trim from kia.com/us "
                     "(falls back to local prices.json). "
-                    "Use exact model names: Forte, Sportage, Telluride, Sorento, EV6, EV9, K5, Carnival. "
+                    "Use exact model names: Seltos, K4, Forte, Sportage, Telluride, Sorento, EV6, EV9, K5, Carnival. "
                     "Use exact variant names from the system prompt variant list."
                 ),
                 "parameters": {

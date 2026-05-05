@@ -1,6 +1,22 @@
 {
   "_note": "Fallback prices only. Tavily web search on kia.com/us is used first.",
   
+  "Seltos": {
+    "LX": "$23,590",
+    "S": "$25,090",
+    "EX": "$27,090",
+    "SX": "$29,090",
+    "SX Prestige": "$31,090",
+    "Nightfall Edition": "$28,090"
+  },
+
+  "K4": {
+    "LX": "$22,390",
+    "LXS": "$23,890",
+    "GT-Line": "$25,390",
+    "EX": "$27,390"
+  },
+
   "Forte": {
     "LX": "$20,000–$21,000",
     "LXS": "$21,500–$22,500",

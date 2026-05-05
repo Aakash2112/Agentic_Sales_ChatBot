@@ -87,18 +87,21 @@ def update_appointment_status(appointment_id, new_status, new_data=None):
 # ============ AUTH ============
 def get_services():
     creds = None
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
+    _src_dir = os.path.dirname(__file__)
+    _token_path = os.path.join(_src_dir, "token.pickle")
+    _creds_path = os.path.join(_src_dir, "credentials.json")
+    if os.path.exists(_token_path):
+        with open(_token_path, "rb") as token:
             creds = pickle.load(token)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            if os.path.exists("token.pickle"):
-                os.remove("token.pickle")
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            if os.path.exists(_token_path):
+                os.remove(_token_path)
+            flow = InstalledAppFlow.from_client_secrets_file(_creds_path, SCOPES)
             creds = flow.run_local_server(port=0)
-        with open("token.pickle", "wb") as token:
+        with open(_token_path, "wb") as token:
             pickle.dump(creds, token)
     gmail    = build("gmail", "v1", credentials=creds)
     calendar = build("calendar", "v3", credentials=creds)

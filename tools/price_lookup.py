@@ -9,6 +9,8 @@ _tavily = None
 def _get_tavily():
     global _tavily
     if _tavily is None:
+        if not TAVILY_API_KEY:
+            raise ValueError("TAVILY_API_KEY not set")
         _tavily = TavilyClient(api_key=TAVILY_API_KEY)
     return _tavily
 

@@ -1,0 +1,145 @@
+/* ── Kia Brand Palette ── */
+:root {
+  --kia-red:    #BB162B;
+  --kia-red-dk: #8C0F20;
+  --kia-dark:   #141414;
+  --kia-card:   #1E1E1E;
+  --kia-border: #2E2E2E;
+  --kia-muted:  #8A8A8A;
+  --kia-white:  #F5F5F5;
+}
+
+/* ── Global background ── */
+body, #root {
+  background-color: var(--kia-dark) !important;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+}
+
+/* ── Header / navbar ── */
+header {
+  background-color: var(--kia-dark) !important;
+  border-bottom: 2px solid var(--kia-red) !important;
+}
+
+header img, .logo {
+  filter: brightness(1.1);
+}
+
+/* ── App name in header ── */
+header span, .MuiTypography-root {
+  color: var(--kia-white) !important;
+}
+
+/* ── Chat container ── */
+.MuiPaper-root, [class*="chat-container"], [class*="message-container"] {
+  background-color: var(--kia-dark) !important;
+}
+
+/* ── Assistant message bubbles ── */
+[class*="assistant"] .MuiBox-root,
+[data-author="Kia Assistant"] > div {
+  background-color: var(--kia-card) !important;
+  border: 1px solid var(--kia-border) !important;
+  border-radius: 12px !important;
+  color: var(--kia-white) !important;
+}
+
+/* ── User message bubbles ── */
+[class*="user-message"], [class*="UserMessage"] {
+  background-color: var(--kia-red) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+}
+
+/* ── Input bar wrapper ── */
+[class*="input-container"], [class*="InputContainer"],
+[class*="composer"], [class*="Composer"],
+[id*="composer"], form[class*="input"] {
+  background-color: var(--kia-card) !important;
+  border: 1.5px solid var(--kia-border) !important;
+  border-radius: 16px !important;
+  padding: 4px 8px !important;
+  margin: 12px 16px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+[class*="input-container"]:focus-within, [class*="InputContainer"]:focus-within,
+[class*="composer"]:focus-within, form[class*="input"]:focus-within {
+  border-color: var(--kia-red) !important;
+  box-shadow: 0 0 0 3px rgba(187, 22, 43, 0.18) !important;
+}
+
+/* ── Textarea inside input ── */
+textarea, .MuiInputBase-input {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: var(--kia-white) !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  padding: 8px 4px !important;
+  resize: none !important;
+}
+
+textarea::placeholder {
+  color: var(--kia-muted) !important;
+  font-style: italic !important;
+}
+
+textarea:focus { outline: none !important; box-shadow: none !important; }
+
+/* ── Send button ── */
+button[type="submit"], [class*="send-button"], [class*="SendButton"] {
+  background-color: var(--kia-red) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  padding: 8px 14px !important;
+  transition: background-color 0.2s ease, transform 0.1s ease !important;
+}
+
+button[type="submit"]:hover, [class*="send-button"]:hover {
+  background-color: var(--kia-red-dk) !important;
+  transform: scale(1.05) !important;
+}
+
+/* ── Starter suggestion chips ── */
+[class*="starter"], [class*="Starter"], [class*="suggestion"] {
+  background-color: var(--kia-card) !important;
+  border: 1px solid var(--kia-red) !important;
+  border-radius: 20px !important;
+  color: var(--kia-white) !important;
+  transition: background-color 0.2s ease, transform 0.1s ease !important;
+}
+
+[class*="starter"]:hover, [class*="suggestion"]:hover {
+  background-color: var(--kia-red) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--kia-dark); }
+::-webkit-scrollbar-thumb { background: var(--kia-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--kia-red); }
+
+/* ── Welcome / chainlit.md card ── */
+[class*="welcome"], [class*="WelcomeScreen"] {
+  background-color: var(--kia-card) !important;
+  border: 1px solid var(--kia-border) !important;
+  border-radius: 16px !important;
+}
+
+/* ── Markdown headings inside messages ── */
+.markdown h1, .markdown h2, .markdown h3 {
+  color: var(--kia-red) !important;
+}
+
+/* ── Links ── */
+a { color: var(--kia-red) !important; }
+a:hover { color: var(--kia-white) !important; }
+
+/* ── Thinking / loader dots ── */
+[class*="loader"], [class*="typing"] {
+  color: var(--kia-red) !important;
+}

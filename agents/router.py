@@ -5,11 +5,15 @@ from config import LLM_MODEL
 INTENTS = {
     "car_inquiry": "Customer is asking about Kia car models, prices, features, specs, or comparisons — with no intent to book.",
     "schedule_appointment": (
-        "Customer wants to book or schedule a test drive, dealership visit, or appointment. "
-        "ALSO use this if a booking is already in progress (e.g. customer is providing their name, "
-        "email, phone, preferred date/time, or any other detail needed to complete a booking)."
+        "Customer explicitly wants to book or schedule a Kia test drive or Kia dealership visit. "
+        "ALSO use this if a Kia booking is already in progress (e.g. customer is providing their name, "
+        "email, phone, preferred date/time, or any other detail needed to complete a Kia booking). "
+        "Do NOT use this for unrelated transport, delivery, ride requests, or anything not about a Kia dealership appointment."
     ),
-    "general": "General greeting, small talk, unclear intent, OR questions about non-Kia brands/competitors.",
+    "general": (
+        "General greeting, small talk, unclear intent, questions about non-Kia topics, "
+        "OR any request unrelated to Kia vehicles or dealership services (e.g. ride requests, deliveries, personal tasks)."
+    ),
 }
 
 # Keywords that strongly indicate a booking is in progress
@@ -61,8 +65,10 @@ class RouterAgent(BaseAgent):
             "You are an intent classifier for a Kia car dealership chatbot. "
             "Given the conversation context, return ONLY a JSON object:\n"
             '{"intent": "<intent_name>", "summary": "<one line summary>"}\n\n'
-            "IMPORTANT: If the customer mentions booking OR a test drive, even alongside a car model, "
-            "always classify as schedule_appointment — not car_inquiry.\n\n"
+            "IMPORTANT RULES:\n"
+            "1. Only classify as schedule_appointment if the customer explicitly wants to book a Kia test drive or dealership visit.\n"
+            "2. Any request unrelated to Kia vehicles or dealership services (rides, deliveries, personal tasks, etc.) must be classified as general.\n"
+            "3. If the customer mentions booking AND a car model, classify as schedule_appointment.\n\n"
             "Available intents:\n"
             + "\n".join(f"- {k}: {v}" for k, v in INTENTS.items())
         )
