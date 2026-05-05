@@ -1,20 +1,37 @@
 import json
-from openai import OpenAI
-from config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, LLM_MODEL
+import time
+from openai import OpenAI, RateLimitError, NotFoundError
+from config import OLLAMA_API_KEY, OLLAMA_BASE_URL, LLM_MODEL, LLM_FALLBACK_MODELS
 
 llm_client = OpenAI(
-    api_key=OPENROUTER_API_KEY,
-    base_url=OPENROUTER_BASE_URL,
+    api_key=OLLAMA_API_KEY,
+    base_url=OLLAMA_BASE_URL,
 )
 
 
 class BaseAgent:
-    """Base class for all agents. Handles the OpenRouter tool-use loop."""
+    """Base class for all agents. Handles the Ollama tool-use loop."""
 
     name: str = "BaseAgent"
     system_prompt: str = ""
     tools: list = []
     tool_handlers: dict = {}
+
+    def _call_llm(self, kwargs: dict) -> object:
+        """Call LLM with retry + backoff on rate limit, then fallback models."""
+        models = [LLM_MODEL] + LLM_FALLBACK_MODELS
+        for model in models:
+            for attempt in range(3):
+                try:
+                    return llm_client.chat.completions.create(**{**kwargs, "model": model})
+                except NotFoundError:
+                    print(f"    [{self.name}] {model} not found, skipping.")
+                    break
+                except RateLimitError:
+                    wait = 5 * (attempt + 1)
+                    print(f"    [{self.name}] {model} rate-limited, retrying in {wait}s...")
+                    time.sleep(wait)
+        raise RuntimeError("All models rate-limited. Please wait a moment and try again.")
 
     def _run_loop(self, messages: list[dict]) -> str:
         """Run the tool-use loop until the model returns a final text response."""
@@ -24,7 +41,7 @@ class BaseAgent:
                 kwargs["tools"] = self.tools
                 kwargs["tool_choice"] = "auto"
 
-            response = llm_client.chat.completions.create(**kwargs)
+            response = self._call_llm(kwargs)
             message = response.choices[0].message
 
             if not message.tool_calls:

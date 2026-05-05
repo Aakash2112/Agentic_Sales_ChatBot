@@ -1,5 +1,5 @@
 import os
-import pickle
+import json
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -14,14 +14,14 @@ def _load():
     global _index, _chunks, _model
     if _index is None:
         index_file = os.path.join(FAISS_INDEX_PATH, "index.faiss")
-        chunks_file = os.path.join(FAISS_INDEX_PATH, "chunks.pkl")
+        chunks_file = os.path.join(FAISS_INDEX_PATH, "chunks.json")
         if not os.path.exists(index_file):
             raise FileNotFoundError(
-                "FAISS index not found. Run: python -m rag.indexer"
+                f"FAISS index not found at {index_file}"
             )
         _index = faiss.read_index(index_file)
-        with open(chunks_file, "rb") as f:
-            _chunks = pickle.load(f)
+        with open(chunks_file, "r") as f:
+            _chunks = json.load(f)
         _model = SentenceTransformer(EMBEDDING_MODEL)
 
 
@@ -37,8 +37,8 @@ def search(query: str, top_k: int = TOP_K_RESULTS) -> list[dict]:
         chunk = _chunks[idx]
         results.append({
             "text": chunk["text"],
-            "source": chunk["source"],
-            "page": chunk["page"],
+            "source": chunk.get("source", f"chunk-{chunk.get('chunk_id', idx)}"),
+            "page": chunk.get("page", "?"),
             "score": float(dist),
         })
     return results

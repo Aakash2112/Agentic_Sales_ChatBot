@@ -1,7 +1,19 @@
 """
 Kia Agentic Sales ChatBot — Chainlit UI
-Run: chainlit run app.py
+Run: chainlit run src/app.py
 """
+
+import sys
+import os
+
+# Project root (contains agents/, tools/, rag/)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# src/ (contains orchestrator.py, config.py)
+_SRC = os.path.dirname(os.path.abspath(__file__))
+
+for _p in (_PROJECT_ROOT, _SRC):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import asyncio
 import chainlit as cl

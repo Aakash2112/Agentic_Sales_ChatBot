@@ -3,11 +3,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# OpenRouter
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-# Free model — see https://openrouter.ai/models?q=free for all free options
-LLM_MODEL = "meta-llama/llama-3.1-8b-instruct:free"
+# Ollama (local)
+OLLAMA_API_KEY = "ollama"  # Ollama doesn't require a real key
+OLLAMA_BASE_URL = "http://localhost:11434/v1"
+# Model must be pulled via: ollama pull llama3
+LLM_MODEL = "llama3.2:latest"
+LLM_FALLBACK_MODELS = ["qwen2.5:3b"]
 
 # Tavily
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -24,8 +25,9 @@ EMAIL_SMTP_HOST = os.getenv("EMAIL_SMTP_HOST", "smtp.gmail.com")
 EMAIL_SMTP_PORT = int(os.getenv("EMAIL_SMTP_PORT", 587))
 
 # RAG
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-FAISS_INDEX_PATH = os.path.join(os.path.dirname(__file__), "faiss_index")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+FAISS_INDEX_PATH = os.path.join(DATA_DIR, "vector_store")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
