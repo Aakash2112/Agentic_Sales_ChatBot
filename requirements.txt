@@ -191,11 +191,6 @@ stack-data==0.6.3
 statsmodels==0.14.6
 sympy==1.14.0
 tabulate==0.9.0
--e git+https://github.com/datapartnership/google-trends-inflation.git@29fe9ed4e76f29944b55611929d96c6d44b1f3c9#egg=template
-terminado==0.18.1
-threadpoolctl==3.6.0
-tinycss2==1.4.0
-tokenizers==0.22.2
 torch==2.11.0
 tornado==6.5.4
 tqdm==4.67.3
