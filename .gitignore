@@ -1,6 +1,10 @@
 # Environment
 .env
 
+# Google OAuth credentials
+credentials.json
+token.pickle
+
 # Python
 __pycache__/
 *.py[cod]
