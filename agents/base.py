@@ -1,10 +1,10 @@
 import json
 from openai import OpenAI
-from config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, LLM_MODEL
+from config import OLLAMA_BASE_URL, LLM_MODEL
 
 llm_client = OpenAI(
-    api_key=OPENROUTER_API_KEY,
-    base_url=OPENROUTER_BASE_URL,
+    api_key="ollama",
+    base_url=OLLAMA_BASE_URL,
 )
 
 

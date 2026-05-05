@@ -5,7 +5,7 @@ from config import LLM_MODEL
 INTENTS = {
     "car_inquiry": "Customer is asking about Kia car models, prices, features, specs, or comparisons.",
     "schedule_appointment": "Customer wants to book a test drive, visit the dealership, or schedule an appointment.",
-    "general": "General greeting, small talk, or unclear intent.",
+    "general": "General greeting, small talk, unclear intent, OR questions about non-Kia brands/competitors.",
 }
 
 

@@ -3,26 +3,32 @@ Kia Agentic Sales ChatBot — Chainlit UI
 Run: chainlit run app.py
 """
 
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))                    # src/
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))   # project root
+
 import asyncio
 import chainlit as cl
 from orchestrator import handle
 
-WELCOME_MESSAGE = """👋 **Welcome to Kia Sales Assistant!**
+WELCOME_MESSAGE = """**Welcome to Kia Sales Assistant!**
 
 I can help you with:
-- 🚗 Questions about Kia models, features, and pricing
-- 📅 Scheduling a test drive or dealership visit
+- Questions about Kia models, features, and pricing
+- Scheduling a test drive or dealership visit
 
 How can I assist you today?
 """
 
-AGENT_ICONS = {
-    "Router":              "🔀",
-    "CarInfoAgent":        "🚗",
-    "AppointmentAgent":    "📅",
-    "NotificationAgent":   "📨",
-    "GeneralAgent":        "💬",
-}
+THINKING_MESSAGES = [
+    "Looking that up for you...",
+    "On it...",
+    "Let me check that...",
+    "Pulling that together...",
+    "Give me a moment...",
+]
+
+_thinking_index = 0
 
 
 @cl.on_chat_start
@@ -33,31 +39,19 @@ async def on_chat_start():
 
 @cl.on_message
 async def on_message(message: cl.Message):
+    global _thinking_index
+
     history: list[dict] = cl.user_session.get("history", [])
     history.append({"role": "user", "content": message.content})
 
-    # Collect step updates from the orchestrator
-    step_log: list[tuple[str, str]] = []
+    # Show a thinking indicator while the agent works
+    thinking_text = THINKING_MESSAGES[_thinking_index % len(THINKING_MESSAGES)]
+    _thinking_index += 1
 
-    def step_callback(agent_name: str, detail: str = ""):
-        step_log.append((agent_name, detail))
+    async with cl.Step(name=thinking_text, show_input=False) as step:
+        response = await asyncio.to_thread(handle, history)
+        step.output = ""
 
-    # Run the blocking orchestrator in a thread so we don't block the event loop
-    response = await asyncio.to_thread(handle, history, step_callback)
-
-    # Show agent steps as collapsible elements
-    if step_log:
-        steps_text = "\n".join(
-            f"{AGENT_ICONS.get(name, '⚙️')} **{name}**" + (f" — {detail}" if detail else "")
-            for name, detail in step_log
-        )
-        await cl.Message(
-            content=steps_text,
-            author="Agent Pipeline",
-            indent=1,
-        ).send()
-
-    # Send the final response
     await cl.Message(content=response, author="Kia Assistant").send()
 
     history.append({"role": "assistant", "content": response})

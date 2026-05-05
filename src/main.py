@@ -3,6 +3,10 @@ CLI fallback for the Kia Sales ChatBot.
 For the UI, run: chainlit run app.py
 """
 
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))                    # src/
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))   # project root
+
 from orchestrator import handle
 
 
