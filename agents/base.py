@@ -1,12 +1,15 @@
 import json
-from groq import Groq
-from config import GROQ_API_KEY, GROQ_MODEL
+from openai import OpenAI
+from config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, LLM_MODEL
 
-groq_client = Groq(api_key=GROQ_API_KEY)
+llm_client = OpenAI(
+    api_key=OPENROUTER_API_KEY,
+    base_url=OPENROUTER_BASE_URL,
+)
 
 
 class BaseAgent:
-    """Base class for all agents. Handles the Groq tool-use loop."""
+    """Base class for all agents. Handles the OpenRouter tool-use loop."""
 
     name: str = "BaseAgent"
     system_prompt: str = ""
@@ -16,12 +19,12 @@ class BaseAgent:
     def _run_loop(self, messages: list[dict]) -> str:
         """Run the tool-use loop until the model returns a final text response."""
         while True:
-            kwargs = {"model": GROQ_MODEL, "messages": messages, "temperature": 0.3}
+            kwargs = {"model": LLM_MODEL, "messages": messages, "temperature": 0.3}
             if self.tools:
                 kwargs["tools"] = self.tools
                 kwargs["tool_choice"] = "auto"
 
-            response = groq_client.chat.completions.create(**kwargs)
+            response = llm_client.chat.completions.create(**kwargs)
             message = response.choices[0].message
 
             if not message.tool_calls:

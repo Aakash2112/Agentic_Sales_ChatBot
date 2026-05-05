@@ -3,9 +3,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Groq
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "llama-3.1-70b-versatile"
+# OpenRouter
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# Free model — see https://openrouter.ai/models?q=free for all free options
+LLM_MODEL = "meta-llama/llama-3.1-8b-instruct:free"
 
 # Tavily
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")

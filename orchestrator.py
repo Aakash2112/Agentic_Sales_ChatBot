@@ -16,14 +16,12 @@ Flow:
   └─────────────────────────────────┘
 """
 
-from groq import Groq
-from config import GROQ_API_KEY, GROQ_MODEL
+from agents.base import llm_client
+from config import LLM_MODEL
 from agents.router import RouterAgent
 from agents.car_info_agent import CarInfoAgent
 from agents.appointment_agent import AppointmentAgent
 from agents.notification_agent import NotificationAgent
-
-_groq = Groq(api_key=GROQ_API_KEY)
 
 router = RouterAgent()
 car_info_agent = CarInfoAgent()
@@ -75,8 +73,8 @@ def handle(conversation_history: list[dict], step_callback=None) -> str:
     else:
         notify("GeneralAgent")
         messages = [{"role": "system", "content": GENERAL_SYSTEM}] + conversation_history
-        resp = _groq.chat.completions.create(
-            model=GROQ_MODEL,
+        resp = llm_client.chat.completions.create(
+            model=LLM_MODEL,
             messages=messages,
             temperature=0.5,
         )

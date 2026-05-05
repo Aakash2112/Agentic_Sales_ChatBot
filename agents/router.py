@@ -1,6 +1,6 @@
 import json
-from agents.base import BaseAgent, groq_client
-from config import GROQ_MODEL
+from agents.base import BaseAgent, llm_client
+from config import LLM_MODEL
 
 INTENTS = {
     "car_inquiry": "Customer is asking about Kia car models, prices, features, specs, or comparisons.",
@@ -27,8 +27,8 @@ class RouterAgent(BaseAgent):
             + "\n".join(f"- {k}: {v}" for k, v in INTENTS.items())
         )
 
-        response = groq_client.chat.completions.create(
-            model=GROQ_MODEL,
+        response = llm_client.chat.completions.create(
+            model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": last_message},
