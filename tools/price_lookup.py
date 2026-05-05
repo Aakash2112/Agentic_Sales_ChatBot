@@ -54,10 +54,10 @@ def lookup_price(model: str, variant: str = None) -> str:
 
     if variant and variant in model_data:
         price = model_data[variant]
-        return f"Kia {model} {variant}: Starting at ${price:,} MSRP (fallback data — verify at kia.com/us)"
+        return f"Kia {model} {variant}: {price} MSRP (fallback data — verify at kia.com/us)"
 
     # Return all variants
     lines = [f"Kia {model} pricing (fallback data — verify at kia.com/us):"]
     for v, p in model_data.items():
-        lines.append(f"  {v}: ${p:,}")
+        lines.append(f"  {v}: {p}")
     return "\n".join(lines)
