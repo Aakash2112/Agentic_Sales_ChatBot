@@ -9,9 +9,7 @@ Flow:
   ┌─────────────────────────────────┐
   │ car_inquiry → CarInfoAgent      │
   │ schedule_appointment            │
-  │   → AppointmentAgent            │
-  │       ↓ (if booked)             │
-  │   → NotificationAgent           │
+  │   → BookingAgent (bookingagent) │
   │ general → direct LLM reply      │
   └─────────────────────────────────┘
 """
@@ -20,13 +18,10 @@ from agents.base import llm_client
 from config import LLM_MODEL
 from agents.router import RouterAgent
 from agents.car_info_agent import CarInfoAgent
-from agents.appointment_agent import AppointmentAgent
-from agents.notification_agent import NotificationAgent
+from bookingagent import run as booking_run
 
 router = RouterAgent()
 car_info_agent = CarInfoAgent()
-appointment_agent = AppointmentAgent()
-notification_agent = NotificationAgent()
 
 GENERAL_SYSTEM = (
     "You are a friendly Kia dealership assistant. "
@@ -59,18 +54,8 @@ def handle(conversation_history: list[dict], step_callback=None) -> str:
         return car_info_agent.run(conversation_history)
 
     elif intent == "schedule_appointment":
-        notify("AppointmentAgent")
-        response, appointment = appointment_agent.run(conversation_history)
-
-        if appointment:
-            notify("NotificationAgent", f"ref={appointment['id']}")
-            notif_status = notification_agent.run(
-                conversation_history,
-                context={"appointment": appointment},
-            )
-            response = f"{response}\n\n{notif_status}"
-
-        return response
+        notify("BookingAgent")
+        return booking_run(conversation_history)
 
     else:
         notify("GeneralAgent")

@@ -8,12 +8,15 @@ from email.mime.base import MIMEBase
 from email import encoders
 from datetime import datetime, timedelta
 from twilio.rest import Client as TwilioClient
+from dotenv import load_dotenv
 import base64, json, os, pickle, pytz, re
 
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
 # ============ CREDENTIALS ============
-CLAUDE_API_KEY  = "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"
-TWILIO_SID      = "ACda09205d4d942ae1cae55e547242e582"
-TWILIO_TOKEN    = "1135286b5f937236df94a4440e204a08"
+CLAUDE_API_KEY  = os.getenv("ANTHROPIC_API_KEY")
+TWILIO_SID      = os.getenv("TWILIO_ACCOUNT_SID", "ACda09205d4d942ae1cae55e547242e582")
+TWILIO_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "1135286b5f937236df94a4440e204a08")
 TWILIO_FROM     = "whatsapp:+14155238886"
 ORGANIZER_EMAIL = "siddharthsaravanan27@gmail.com"
 APPOINTMENTS_FILE = "appointments.json"
@@ -419,22 +422,28 @@ def reschedule_booking(gmail, calendar, data, old_data, appointment_id):
         print(f"  📅 Try:\n{suggestion_text}\n")
         return False, suggestions
 
-# ============ BOOKING AGENT ============
-def booking_agent():
-    client       = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
-    gmail, calendar = get_services()
-    conversation = []
-    booking_done = False
-    appointment_id = None
-    last_booking_data = None
+# ============ SESSION STATE ============
+_booking_done = False
+_appointment_id = None
+_last_booking_data = None
+_gmail = None
+_calendar = None
 
-    # Pre-compute correct day names
+
+def _get_cached_services():
+    global _gmail, _calendar
+    if _gmail is None or _calendar is None:
+        _gmail, _calendar = get_services()
+    return _gmail, _calendar
+
+
+def _build_system_prompt():
     today_str    = get_today_str()
     tomorrow_str = get_tomorrow_str()
     next_7_days  = get_next_7_days()
     next_7_str   = "\n".join([f"- {d}" for d in next_7_days])
 
-    system_prompt = f"""You are a friendly Kia car booking agent for Kia Santa Monica.
+    return f"""You are a friendly Kia car booking agent for Kia Santa Monica.
 
 Today is {today_str}.
 Tomorrow is {tomorrow_str}.
@@ -483,77 +492,71 @@ For rescheduling, collect new date and time then output:
   "ready": true
 }}"""
 
-    print("🚗 Kia Santa Monica Booking Agent")
-    print("=" * 40)
-    print("Type 'quit' to exit\n")
 
-    while True:
-        user_input = input("You: ").strip()
-        if user_input.lower() == "quit":
-            break
+# ============ ORCHESTRATOR ENTRY POINT ============
+def run(conversation_history: list[dict]) -> str:
+    """
+    Called by orchestrator for schedule_appointment intent.
+    Accepts full conversation history, returns assistant response string.
+    """
+    global _booking_done, _appointment_id, _last_booking_data
 
-        conversation.append({"role": "user", "content": user_input})
+    client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+    gmail, calendar = _get_cached_services()
+    system_prompt = _build_system_prompt()
 
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1000,
-            system=system_prompt,
-            messages=conversation
-        )
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1000,
+        system=system_prompt,
+        messages=conversation_history
+    )
 
-        reply = response.content[0].text
-        conversation.append({"role": "assistant", "content": reply})
+    reply = response.content[0].text
+    data  = extract_json(reply)
 
-        data = extract_json(reply)
+    if data and data.get("ready"):
 
-        if data and data.get("ready"):
+        # ===== RESCHEDULE =====
+        if data.get("reschedule") and _booking_done and _last_booking_data and _appointment_id:
+            success, suggestions = reschedule_booking(gmail, calendar, data, _last_booking_data, _appointment_id)
+            if success:
+                _last_booking_data = data
+                return f"Your test drive has been rescheduled to {data['date']} at {data['time']}! A new confirmation email and WhatsApp has been sent."
+            else:
+                alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
+                r2 = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=500,
+                    system=system_prompt,
+                    messages=conversation_history + [
+                        {"role": "assistant", "content": reply},
+                        {"role": "user", "content": f"System: New slot taken. Tell customer these are available: {alt_text}"},
+                    ]
+                )
+                return r2.content[0].text
 
-            # ===== RESCHEDULE =====
-            if data.get("reschedule") and booking_done and last_booking_data and appointment_id:
-                success, suggestions = reschedule_booking(gmail, calendar, data, last_booking_data, appointment_id)
-                if success:
-                    last_booking_data = data
-                    print(f"\nAgent: Your test drive has been rescheduled to {data['date']} at {data['time']}! A new confirmation email and WhatsApp has been sent 🔄\n")
-                else:
-                    alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
-                    conversation.append({
-                        "role": "user",
-                        "content": f"System: New slot taken. Tell customer these are available: {alt_text}"
-                    })
-                    r2 = client.messages.create(
-                        model="claude-haiku-4-5-20251001",
-                        max_tokens=500,
-                        system=system_prompt,
-                        messages=conversation
-                    )
-                    print(f"\nAgent: {r2.content[0].text}\n")
+        # ===== NEW BOOKING =====
+        elif not _booking_done:
+            success, suggestions, apt_id = complete_booking(gmail, calendar, data)
+            if success:
+                _booking_done      = True
+                _appointment_id    = apt_id
+                _last_booking_data = data
+                return f"Your test drive is all set! Confirmation sent to {data['email']}. Let me know if you need to reschedule."
+            else:
+                alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
+                r2 = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=500,
+                    system=system_prompt,
+                    messages=conversation_history + [
+                        {"role": "assistant", "content": reply},
+                        {"role": "user", "content": f"System: Slot taken. Tell customer only these are available: {alt_text}"},
+                    ]
+                )
+                return r2.content[0].text
 
-            # ===== NEW BOOKING =====
-            elif not booking_done:
-                success, suggestions, apt_id = complete_booking(gmail, calendar, data)
-                if success:
-                    booking_done       = True
-                    appointment_id     = apt_id
-                    last_booking_data  = data
-                    print(f"\nAgent: Your test drive is all set! 🎉 Confirmation sent to {data['email']}. Type 'reschedule' anytime to change your appointment!\n")
-                else:
-                    alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
-                    conversation.append({
-                        "role": "user",
-                        "content": f"System: Slot taken. Tell customer only these are available: {alt_text}"
-                    })
-                    r2 = client.messages.create(
-                        model="claude-haiku-4-5-20251001",
-                        max_tokens=500,
-                        system=system_prompt,
-                        messages=conversation
-                    )
-                    reply2 = r2.content[0].text
-                    conversation.append({"role": "assistant", "content": reply2})
-                    print(f"\nAgent: {reply2}\n")
-        else:
-            display_reply = re.sub(r'\{[^{}]*"ready"[^{}]*\}', '', reply, flags=re.DOTALL).strip()
-            if display_reply:
-                print(f"\nAgent: {display_reply}\n")
-
-booking_agent()
+    # Normal conversational reply — strip any leaked JSON
+    display_reply = re.sub(r'\{[^{}]*"ready"[^{}]*\}', '', reply, flags=re.DOTALL).strip()
+    return display_reply if display_reply else reply
