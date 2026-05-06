@@ -5,7 +5,8 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 # Ollama (local)
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-LLM_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+LLM_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+PHONE_LLM_MODEL = os.getenv("OLLAMA_PHONE_MODEL", "qwen2.5:1.5b")
 
 # Tavily
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -24,7 +25,7 @@ EMAIL_SMTP_PORT = int(os.getenv("EMAIL_SMTP_PORT", 587))
 # RAG
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 DATA_DIR = os.path.join(_PROJECT_ROOT, "data")
-FAISS_INDEX_PATH = os.path.join(_PROJECT_ROOT, "faiss_index")
+FAISS_INDEX_PATH = os.path.join(_PROJECT_ROOT, "data", "vector_store")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50

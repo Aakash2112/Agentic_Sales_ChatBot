@@ -16,10 +16,10 @@ class BaseAgent:
     tools: list = []
     tool_handlers: dict = {}
 
-    def _run_loop(self, messages: list[dict]) -> str:
+    def _run_loop(self, messages: list[dict], model: str = None) -> str:
         """Run the tool-use loop until the model returns a final text response."""
         while True:
-            kwargs = {"model": LLM_MODEL, "messages": messages, "temperature": 0.3}
+            kwargs = {"model": model or LLM_MODEL, "messages": messages, "temperature": 0.3}
             if self.tools:
                 kwargs["tools"] = self.tools
                 kwargs["tool_choice"] = "auto"

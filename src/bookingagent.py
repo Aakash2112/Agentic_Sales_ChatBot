@@ -1,4 +1,4 @@
-import anthropic
+from openai import OpenAI
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
@@ -14,7 +14,6 @@ import base64, json, os, pickle, pytz, re
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 # ============ CREDENTIALS ============
-CLAUDE_API_KEY  = os.getenv("ANTHROPIC_API_KEY")
 TWILIO_SID      = os.getenv("TWILIO_ACCOUNT_SID", "ACda09205d4d942ae1cae55e547242e582")
 TWILIO_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "1135286b5f937236df94a4440e204a08")
 TWILIO_FROM     = "whatsapp:+14155238886"
@@ -497,25 +496,38 @@ For rescheduling, collect new date and time then output:
 
 
 # ============ ORCHESTRATOR ENTRY POINT ============
-def run(conversation_history: list[dict]) -> str:
+PHONE_ADDENDUM = (
+    "\n\nIMPORTANT: You are responding on a live phone call. "
+    "You MUST follow these rules strictly:\n"
+    "- Speak in plain natural English sentences only\n"
+    "- NEVER use markdown, asterisks, dashes, bullet points, or numbered lists\n"
+    "- NEVER include URLs or special characters\n"
+    "- Ask for one piece of information at a time\n"
+    "- Keep each response to 1 to 2 sentences"
+)
+
+
+def run(conversation_history: list[dict], mode: str = "chat") -> str:
     """
     Called by orchestrator for schedule_appointment intent.
     Accepts full conversation history, returns assistant response string.
     """
     global _booking_done, _appointment_id, _last_booking_data
 
-    client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+    from config import OLLAMA_BASE_URL, LLM_MODEL, PHONE_LLM_MODEL
+    client = OpenAI(api_key="ollama", base_url=OLLAMA_BASE_URL)
+    model = PHONE_LLM_MODEL if mode == "phone" else LLM_MODEL
     gmail, calendar = _get_cached_services()
-    system_prompt = _build_system_prompt()
+    system_prompt = _build_system_prompt() + (PHONE_ADDENDUM if mode == "phone" else "")
 
-    response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=1000,
-        system=system_prompt,
-        messages=conversation_history
+    messages = [{"role": "system", "content": system_prompt}] + conversation_history
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=0.3,
     )
 
-    reply = response.content[0].text
+    reply = response.choices[0].message.content
     data  = extract_json(reply)
 
     if data and data.get("ready"):
@@ -528,16 +540,15 @@ def run(conversation_history: list[dict]) -> str:
                 return f"Your test drive has been rescheduled to {data['date']} at {data['time']}! A new confirmation email and WhatsApp has been sent."
             else:
                 alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
-                r2 = client.messages.create(
-                    model="claude-haiku-4-5-20251001",
-                    max_tokens=500,
-                    system=system_prompt,
-                    messages=conversation_history + [
+                r2 = client.chat.completions.create(
+                    model=model,
+                    messages=messages + [
                         {"role": "assistant", "content": reply},
                         {"role": "user", "content": f"System: New slot taken. Tell customer these are available: {alt_text}"},
-                    ]
+                    ],
+                    temperature=0.3,
                 )
-                return r2.content[0].text
+                return r2.choices[0].message.content
 
         # ===== NEW BOOKING =====
         elif not _booking_done:
@@ -549,16 +560,15 @@ def run(conversation_history: list[dict]) -> str:
                 return f"Your test drive is all set! Confirmation sent to {data['email']}. Let me know if you need to reschedule."
             else:
                 alt_text = "\n".join([f"{s['date']} at {s['time']}" for s in suggestions])
-                r2 = client.messages.create(
-                    model="claude-haiku-4-5-20251001",
-                    max_tokens=500,
-                    system=system_prompt,
-                    messages=conversation_history + [
+                r2 = client.chat.completions.create(
+                    model=model,
+                    messages=messages + [
                         {"role": "assistant", "content": reply},
                         {"role": "user", "content": f"System: Slot taken. Tell customer only these are available: {alt_text}"},
-                    ]
+                    ],
+                    temperature=0.3,
                 )
-                return r2.content[0].text
+                return r2.choices[0].message.content
 
     # Normal conversational reply — strip any leaked JSON
     display_reply = re.sub(r'\{[^{}]*"ready"[^{}]*\}', '', reply, flags=re.DOTALL).strip()

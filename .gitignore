@@ -30,6 +30,9 @@ faiss_index/
 # Appointments data
 data/appointments.json
 
+# Phone agent audio cache
+src/audio_cache/
+
 # Chainlit
 .chainlit/
 chainlit.db

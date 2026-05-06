@@ -108,6 +108,20 @@ End each response with a natural, context-aware follow-up — vary it based on w
         "lookup_price": lambda args: lookup_price(args["model"], args.get("variant")),
     }
 
-    def run(self, conversation_history: list[dict], context: dict = None) -> str:
-        messages = [{"role": "system", "content": self.system_prompt}] + conversation_history
-        return self._run_loop(messages)
+    PHONE_ADDENDUM = (
+        "\n\nIMPORTANT: You are responding on a live phone call. "
+        "You MUST follow these rules strictly:\n"
+        "- Speak in plain natural English sentences only\n"
+        "- NEVER use markdown, asterisks, dashes, bullet points, numbered lists, or hashtags\n"
+        "- NEVER include URLs or website links\n"
+        "- NEVER use special characters like ®, ™, ©, or emoji\n"
+        "- Keep the response to 2 to 4 natural spoken sentences\n"
+        "- End with a simple follow-up question to keep the conversation going"
+    )
+
+    def run(self, conversation_history: list[dict], context: dict = None, mode: str = "chat") -> str:
+        from config import PHONE_LLM_MODEL, LLM_MODEL
+        prompt = self.system_prompt + (self.PHONE_ADDENDUM if mode == "phone" else "")
+        messages = [{"role": "system", "content": prompt}] + conversation_history
+        model = PHONE_LLM_MODEL if mode == "phone" else LLM_MODEL
+        return self._run_loop(messages, model=model)
