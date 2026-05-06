@@ -14,10 +14,7 @@ import base64, json, os, pickle, pytz, re
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 # ============ CREDENTIALS ============
-TWILIO_SID      = os.getenv("TWILIO_ACCOUNT_SID", "ACda09205d4d942ae1cae55e547242e582")
-TWILIO_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "1135286b5f937236df94a4440e204a08")
-TWILIO_FROM     = "whatsapp:+14155238886"
-ORGANIZER_EMAIL = "siddharthsaravanan27@gmail.com"
+
 APPOINTMENTS_FILE = "appointments.json"
 
 SCOPES = [
