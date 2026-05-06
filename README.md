@@ -178,3 +178,9 @@ Then call your Twilio number and the agent picks up automatically.
 | `TWILIO_AUTH_TOKEN` | Twilio auth token |
 | `TWILIO_WHATSAPP_FROM` | Twilio WhatsApp sender number |
 | `BASE_URL` | Public tunnel URL for phone agent webhooks |
+
+---
+
+## Sample Chat User Interface
+<img width="1664" height="1072" alt="image" src="https://github.com/user-attachments/assets/0471a9a5-f8da-4b0b-882f-807e60561e7d" />
+
