@@ -4,6 +4,8 @@
 # Google OAuth credentials
 credentials.json
 token.pickle
+src/credentials.json
+src/token.pickle
 
 # Python
 __pycache__/
